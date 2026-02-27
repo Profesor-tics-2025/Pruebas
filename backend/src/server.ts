@@ -16,6 +16,7 @@ app.use(
   })
 );
 app.use(express.json({ limit: '10mb' }));
+// @ts-ignore
 app.use(pinoHttp({ logger }));
 app.use(rateLimit({ windowMs: 60_000, max: 120 }));
 

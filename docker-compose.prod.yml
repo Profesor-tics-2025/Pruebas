@@ -1,13 +1,10 @@
+version: "3.8"
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    env_file: .env
+    image: ghcr.io/Profesor-tics-2025/video-ai-backend:latest
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/video_ai
       - REDIS_URL=redis://redis:6379
-      - NODE_ENV=production
     ports:
       - "4000:4000"
     depends_on:
@@ -15,9 +12,7 @@ services:
       - redis
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/Profesor-tics-2025/video-ai-frontend:latest
     ports:
       - "3000:80"
     depends_on:
@@ -29,15 +24,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: video_ai
-    ports:
-      - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7
-    ports:
-      - "6379:6379"
 
 volumes:
   pg_data:

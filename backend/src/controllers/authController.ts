@@ -16,8 +16,10 @@ const loginSchema = z.object({
   password: z.string().min(6)
 });
 
-const signToken = (id: string, email: string, role: string) =>
-  jwt.sign({ sub: id, email, role }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
+const signToken = (id: string, email: string, role: string): string => {
+  // @ts-ignore
+  return jwt.sign({ sub: id, email, role }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
+};
 
 export const register = async (req: Request, res: Response) => {
   const input = registerSchema.parse(req.body);

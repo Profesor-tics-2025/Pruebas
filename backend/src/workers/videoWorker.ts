@@ -1,4 +1,4 @@
-import { VideoStatus } from '@prisma/client';
+import type { VideoStatus } from '@prisma/client';
 import { Worker } from 'bullmq';
 import { prisma } from '../config/prisma.js';
 import { redis } from '../config/redis.js';
@@ -16,7 +16,7 @@ new Worker(
       processingJobId: string;
     };
 
-    await prisma.video.update({ where: { id: videoId }, data: { status: VideoStatus.PROCESSING } });
+    await prisma.video.update({ where: { id: videoId }, data: { status: 'PROCESSING' as any } });
     await prisma.processingJob.update({ where: { id: processingJobId }, data: { attempts: job.attemptsStarted, startedAt: new Date() } });
 
     try {
@@ -27,24 +27,24 @@ new Worker(
         update: {
           providerUsed: result.provider,
           confidenceScore: result.confidenceScore,
-          payloadJson: result.payload
+          payloadJson: result.payload as any
         },
         create: {
           videoId,
           providerUsed: result.provider,
           confidenceScore: result.confidenceScore,
-          payloadJson: result.payload
+          payloadJson: result.payload as any
         }
       });
 
-      await prisma.video.update({ where: { id: videoId }, data: { status: VideoStatus.COMPLETED } });
+      await prisma.video.update({ where: { id: videoId }, data: { status: 'COMPLETED' as any } });
       await prisma.processingJob.update({ where: { id: processingJobId }, data: { finishedAt: new Date(), lastError: null } });
       await prisma.systemEventLog.create({
         data: { level: 'info', message: 'Video procesado', context: { videoId, provider: result.provider } }
       });
     } catch (error) {
       const errMsg = (error as Error).message;
-      await prisma.video.update({ where: { id: videoId }, data: { status: VideoStatus.FAILED } });
+      await prisma.video.update({ where: { id: videoId }, data: { status: 'FAILED' as any } });
       await prisma.processingJob.update({ where: { id: processingJobId }, data: { lastError: errMsg, finishedAt: new Date() } });
       await prisma.systemEventLog.create({
         data: { level: 'error', message: 'Error de procesamiento', context: { videoId, error: errMsg } }

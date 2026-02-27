@@ -1,4 +1,4 @@
-import { TaskType } from '@prisma/client';
+import type { TaskType } from '@prisma/client';
 
 export type Recommendation = { primary: string; fallbacks: string[]; reason: string };
 

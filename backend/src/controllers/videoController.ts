@@ -1,4 +1,4 @@
-import { TaskType, VideoStatus } from '@prisma/client';
+import type { TaskType, VideoStatus } from '@prisma/client';
 import { Request, Response } from 'express';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -29,7 +29,7 @@ export const uploadVideo = async (req: Request, res: Response) => {
       storagePath: req.file.path,
       sizeBytes: req.file.size,
       taskType,
-      status: VideoStatus.QUEUED,
+      status: 'QUEUED' as any,
       userId: req.user!.id
     }
   });
@@ -69,9 +69,9 @@ export const getMetrics = async (req: Request, res: Response) => {
   const base = { userId: req.user!.id };
   const [total, completed, failed, processing] = await Promise.all([
     prisma.video.count({ where: base }),
-    prisma.video.count({ where: { ...base, status: VideoStatus.COMPLETED } }),
-    prisma.video.count({ where: { ...base, status: VideoStatus.FAILED } }),
-    prisma.video.count({ where: { ...base, status: VideoStatus.PROCESSING } })
+    prisma.video.count({ where: { ...base, status: 'COMPLETED' as any } }),
+    prisma.video.count({ where: { ...base, status: 'FAILED' as any } }),
+    prisma.video.count({ where: { ...base, status: 'PROCESSING' as any } })
   ]);
 
   res.json({ total, completed, failed, processing });
