@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum VideoStatus {
+  UPLOADED
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum TaskType {
+  TRANSCRIPTION
+  OBJECT_DETECTION
+  FACE_RECOGNITION
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now())
+  videos       Video[]
+}
+
+model Video {
+  id            String            @id @default(cuid())
+  originalName  String
+  storagePath   String
+  sizeBytes     Int
+  status        VideoStatus       @default(UPLOADED)
+  taskType      TaskType
+  userId        String
+  user          User              @relation(fields: [userId], references: [id])
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  jobs          ProcessingJob[]
+  result        ProcessingResult?
+}
+
+model ProcessingJob {
+  id              String   @id @default(cuid())
+  queueJobId      String?
+  videoId         String
+  video           Video    @relation(fields: [videoId], references: [id])
+  recommendedAi   String
+  fallbackChain   String
+  attempts        Int      @default(0)
+  lastError       String?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model ProcessingResult {
+  id              String   @id @default(cuid())
+  videoId         String   @unique
+  video           Video    @relation(fields: [videoId], references: [id])
+  providerUsed    String
+  confidenceScore Float?
+  payloadJson     Json
+  createdAt       DateTime @default(now())
+}
+
+model SystemEventLog {
+  id        String   @id @default(cuid())
+  level     String
+  message   String
+  context   Json?
+  createdAt DateTime @default(now())
+}
