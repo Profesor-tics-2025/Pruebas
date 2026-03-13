@@ -5,6 +5,7 @@ import { detectConflicts } from "@/lib/conflicts";
 import { getHoursBetween, calculateCourseIncome } from "@/lib/utils";
 
 export async function GET() {
+  try {
   const userId = await ensureDemoUser();
   const now = new Date();
 
@@ -158,4 +159,11 @@ export async function GET() {
           ) / 100
         : 0,
   });
+  } catch (error) {
+    console.error("Stats API error:", error);
+    return NextResponse.json(
+      { error: "Error loading stats", details: String(error) },
+      { status: 500 }
+    );
+  }
 }
