@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courses       Course[]
+  offers        CourseOffer[]
+  configuration TeacherConfig?
+}
+
+model TeacherConfig {
+  id                  String  @id @default(cuid())
+  userId              String  @unique
+  maxHoursPerWeek     Int     @default(30)
+  availableDays       String  @default("1,2,3,4,5") // comma-separated: 0=Sun..6=Sat
+  minHourlyRate       Float   @default(25.0)
+  preferredModality   String  @default("both") // presencial, online, both
+  dailyMaxHours       Int     @default(8)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TrainingEntity {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String?
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+
+  courses Course[]
+  offers  CourseOffer[]
+}
+
+model Course {
+  id               String   @id @default(cuid())
+  userId           String
+  entityId         String?
+  name             String
+  modality         String   @default("presencial") // presencial, online, hibrido
+  cityOrPlatform   String?
+  startDate        DateTime
+  endDate          DateTime
+  totalHours       Float
+  schedule         String?  // e.g. "L-V 9:00-14:00"
+  hourlyRate       Float?
+  totalPrice       Float?
+  status           String   @default("pendiente") // oferta, pendiente, confirmado, finalizado, cancelado
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entity   TrainingEntity? @relation(fields: [entityId], references: [id])
+  sessions Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  courseId  String
+  date      DateTime
+  startTime String   // "09:00"
+  endTime   String   // "14:00"
+  content   String?
+  status    String   @default("pendiente") // pendiente, impartida
+  createdAt DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model CourseOffer {
+  id             String   @id @default(cuid())
+  userId         String
+  entityId       String?
+  courseName     String
+  startDate      DateTime
+  endDate        DateTime
+  schedule       String?
+  totalHours     Float
+  hourlyRate     Float?
+  totalPrice     Float?
+  modality       String   @default("presencial")
+  cityOrPlatform String?
+  status         String   @default("recibida") // recibida, evaluando, aceptada, rechazada
+  aiRecommendation String? // JSON string with recommendation
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entity TrainingEntity? @relation(fields: [entityId], references: [id])
+}
